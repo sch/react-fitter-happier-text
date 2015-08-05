@@ -1,9 +1,22 @@
-
 import React from 'react'
 import { debounce } from 'lodash'
 
-class FitterHappierText extends React.Component {
+const styles = {
+  svg: {
+    width: '100%',
+    maxHeight: '100%',
+    fill: 'currentcolor',
+    overflow: 'visible'
+  },
+  text: {
+    fontFamily: 'inherit',
+    fontSize: '1rem',
+    fontWeight: 'inherit',
+    textAnchor: 'middle'
+  }
+}
 
+export default class FitterHappierText extends React.Component {
   constructor () {
     super ()
     this.resize = debounce(this.resize.bind(this))
@@ -14,16 +27,9 @@ class FitterHappierText extends React.Component {
   }
 
   resize () {
-    let el = React.findDOMNode(this.refs.text)
-    let state = this.state
-    let width = el.offsetWidth || el.getComputedTextLength()
-    let height = el.offsetHeight | 24
-    if (state.width !== width || state.height !== height) {
-      this.setState({
-        width: width,
-        height: height
-      })
-    }
+    console.log("how much is this getting called?")
+    const size = elementSize(React.findDOMNode(this.refs.text))
+    if (!sameSize(size, this.state)) this.setState(size)
   }
 
   componentDidMount () {
@@ -35,41 +41,18 @@ class FitterHappierText extends React.Component {
   }
 
   render () {
-    let styles = {
-      svg: {
-        width: '100%',
-        maxHeight: '100%',
-        fill: 'currentcolor',
-        overflow: 'visible'
-      },
-      text: {
-        fontFamily: 'inherit',
-        fontSize: '1rem',
-        fontWeight: 'inherit',
-        textAnchor: 'middle'
-      }
-    }
-    let viewBox = [
-      0, 0,
-      this.state.width,
-      this.state.height
-    ].join(' ')
+    const text = React.createElement('text', {
+      ref: 'text',
+      x: '50%',
+      y: this.props.baseline,
+      style: styles.text
+    }, this.props.text);
 
-    return (
-      <svg {...this.props}
-        viewBox={viewBox}
-        style={styles.svg}>
-        <text
-          ref='text'
-          x='50%'
-          y={this.props.baseline}
-          style={styles.text}>
-          {this.props.text}
-        </text>
-      </svg>
-    )
+    return React.createElement('svg', {
+      viewBox: viewbox(this.state),
+      style: styles.svg
+    }, text);
   }
-
 }
 
 FitterHappierText.defaultProps = {
@@ -83,5 +66,26 @@ FitterHappierText.propTypes = {
   paddingY: React.PropTypes.number,
 }
 
-export default FitterHappierText
+
+function elementSize(element) {
+  const width = element.offsetWidth || element.getComputedTextLength()
+  const height = element.offsetHeight | 24
+  return {width, height};
+}
+
+function sameSize(sizeA, sizeB) {
+  return sameWidth(sizeA, sizeB) && sameHeight(sizeA, sizeB);
+}
+
+function sameWidth(sizeA, sizeB) {
+  return sizeA.width === sizeB.width;
+}
+
+function sameHeight(sizeA, sizeB) {
+  return sizeA.height === sizeB.height;
+}
+
+function viewbox(size) {
+  return [0, 0, size.width, size.height].join(' ')
+}
 
